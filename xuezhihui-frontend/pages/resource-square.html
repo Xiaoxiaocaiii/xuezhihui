@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源广场 - 学知汇</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <!-- 顶部导航栏 -->
+        <header class="navbar">
+            <div class="container">
+                <a href="home.html" class="btn btn-sm btn-outline">← 返回首页</a>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text); white-space: nowrap;">
+                    📖 资源广场
+                </span>
+            </div>
+        </header>
+
+        <!-- 主体内容 -->
+        <main class="page-main">
+            <div class="container">
+                <div class="page-header">
+                    <h2 class="page-title">📖 资源广场</h2>
+                    <p class="page-subtitle">浏览同学们上传的课件、笔记、复习资料，一键下载学习。</p>
+                </div>
+
+                <section class="resource-grid" id="resource-grid">
+                    <div class="card" id="loading-card" style="grid-column: 1 / -1;">
+                        <div class="card-body text-center" style="padding: var(--spacing-2xl);">
+                            <div class="spinner spinner-lg" style="margin: 0 auto var(--spacing-md);"></div>
+                            <p class="text-secondary">正在加载资源列表...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 资源详情 & 评论区 -->
+                <section class="card hidden" id="detail-section" style="margin-top: var(--spacing-xl);">
+                    <div class="card-body">
+                        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
+                            <h3 id="detail-title" style="margin: 0;">📄 资源详情</h3>
+                            <button type="button" class="btn btn-sm btn-outline" id="btn-close">✕ 关闭</button>
+                        </div>
+                        <div class="flex items-center gap-lg" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--color-border);">
+                            <div style="flex: 1;">
+                                <h4 id="detail-resource-title" style="margin-bottom: var(--spacing-xs);">--</h4>
+                                <p class="text-sm text-muted" id="detail-file-name">--</p>
+                            </div>
+                            <button type="button" class="btn" id="btn-download">⬇ 下载文件</button>
+                        </div>
+                        <div style="margin-bottom: var(--spacing-lg);">
+                            <h4 style="margin-bottom: var(--spacing-sm);">💬 发表评论</h4>
+                            <div class="flex gap-sm">
+                                <input type="text" id="comment-input" placeholder="写下你的评论..." maxlength="500" style="flex: 1;">
+                                <button type="button" class="btn" id="btn-post">发送</button>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: var(--spacing-sm);">📝 评论列表</h4>
+                            <div class="comment-list" id="comment-list"></div>
+                            <div class="empty-state hidden" id="comment-empty">
+                                <div class="empty-icon">💬</div>
+                                <p class="empty-title">暂无评论</p>
+                                <p class="empty-desc">快来发表第一条评论吧！</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="empty-state hidden" id="resource-empty">
+                    <div class="empty-icon">📭</div>
+                    <p class="empty-title">暂无资源</p>
+                    <p class="empty-desc">还没有同学上传资源，快去「上传资源」页面分享你的学习资料吧！</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+    (function () {
+      'use strict';
+      // 未登录自动跳回着陆页
+      if (!getUserId() || getUserId() === 0) {
+        window.location.href = '../index.html';
+      }
+      var curId = null;
+      var uid = getUserId();
+
+      // DOM 引用缓存
+      var E = {
+        grid:           $('resource-grid'),
+        loading:        $('loading-card'),
+        emptyState:     $('resource-empty'),
+        detailSection:  $('detail-section'),
+        detailResTitle: $('detail-resource-title'),
+        detailFileName: $('detail-file-name'),
+        btnDownload:    $('btn-download'),
+        btnClose:       $('btn-close'),
+        commentInput:   $('comment-input'),
+        btnPost:        $('btn-post'),
+        commentList:    $('comment-list'),
+        commentEmpty:   $('comment-empty')
+      };
+
+      // 渲染资源卡片
+      function renderCard(item, i) {
+        var isOwner = uid && item.userId === uid;
+        var card = document.createElement('div');
+        card.className = 'card resource-card';
+        card.style.cursor = 'pointer';
+        card.innerHTML =
+          '<div class="card-body">' +
+            '<h3 class="resource-title" style="margin-bottom: var(--spacing-sm);">' + (item.title || '未命名资源') + '</h3>' +
+            '<p class="resource-filename" style="margin-bottom: var(--spacing-sm);">📎 ' + (item.fileName || '未知文件') + '</p>' +
+            '<p style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--spacing-sm);">👤 上传者：' + (item.username || '未知') + '</p>' +
+            '<div class="resource-actions">' +
+              '<button type="button" class="btn btn-sm btn-outline btn-dl">⬇ 下载</button>' +
+              '<button type="button" class="btn btn-sm btn-outline btn-detail">💬 评论</button>' +
+              (isOwner ? '<button type="button" class="btn btn-sm btn-outline btn-del" style="color:var(--color-error);border-color:var(--color-error);">🗑 删除</button>' : '') +
+            '</div>' +
+          '</div>';
+
+        card.querySelector('.btn-dl').addEventListener('click', function (e) {
+          e.stopPropagation();
+          downloadResourceToLocal(item.id)
+            .then(function () { showToast('下载成功！', 'success'); })
+            .catch(function () { showToast('下载失败', 'error'); });
+        });
+
+        card.querySelector('.btn-detail').addEventListener('click', function (e) {
+          e.stopPropagation();
+          openDetail(item.id, item.title || '未命名资源', item.fileName || '未知文件');
+        });
+
+        card.addEventListener('click', function (e) {
+          if (e.target.tagName === 'BUTTON') return;
+          openDetail(item.id, item.title || '未命名资源', item.fileName || '未知文件');
+        });
+
+        if (isOwner) {
+          card.querySelector('.btn-del').addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!confirm('确定要删除这个资源吗？')) return;
+            deleteResource(item.id)
+              .then(function () { showToast('删除成功！', 'success'); reload(); })
+              .catch(function (err) { showToast(err.message || '删除失败', 'error'); });
+          });
+        }
+        return card;
+      }
+
+      // 渲染评论
+      function renderComment(item) {
+        var isOwner = uid && item.userId === uid;
+        var el = document.createElement('div');
+        el.className = 'comment-item';
+        el.innerHTML =
+          '<div class="comment-header">' +
+            '<span class="comment-user">👤 ' + (item.username || '同学') + '</span>' +
+            (isOwner ? '<button type="button" class="toast-close btn-dc" style="position:static;color:var(--color-error);opacity:1;font-size:var(--font-size-xs);">✕</button>' : '') +
+          '</div>' +
+          '<div class="comment-content">' + (item.content || '') + '</div>';
+        if (isOwner) {
+          el.querySelector('.btn-dc').addEventListener('click', function () {
+            if (!confirm('确定要删除这条评论吗？')) return;
+            deleteComment(item.resourceId, item.id)
+              .then(function () { showToast('删除成功！', 'success'); loadComments(curId); })
+              .catch(function (err) { showToast(err.message || '删除失败', 'error'); });
+          });
+        }
+        return el;
+      }
+
+      // 加载资源列表
+      function loadResources() {
+        getResources().then(function (res) {
+          var resources = res.data || [];
+          E.loading.remove();
+          if (resources.length === 0) { E.emptyState.classList.remove('hidden'); return; }
+          resources.forEach(function (item, i) { E.grid.appendChild(renderCard(item, i)); });
+        }).catch(function () {
+          E.loading.remove();
+          E.emptyState.classList.remove('hidden');
+        });
+      }
+
+      function reload() {
+        E.grid.innerHTML = '';
+        loadResources();
+      }
+
+      // 打开资源详情
+      function openDetail(id, title, fileName) {
+        curId = id;
+        E.detailSection.classList.remove('hidden');
+        E.detailSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        E.detailResTitle.textContent = title;
+        E.detailFileName.textContent = '📎 ' + fileName;
+        E.btnDownload.onclick = function () {
+          downloadResourceToLocal(id)
+            .then(function () { showToast('下载成功！', 'success'); })
+            .catch(function () { showToast('下载失败', 'error'); });
+        };
+        E.commentInput.value = '';
+        loadComments(id);
+      }
+
+      function closeDetail() {
+        E.detailSection.classList.add('hidden');
+        curId = null;
+      }
+
+      // 加载评论
+      function loadComments(resourceId) {
+        E.commentList.innerHTML = '';
+        getComments(resourceId).then(function (res) {
+          var comments = res.data || [];
+          if (comments.length === 0) { E.commentEmpty.classList.remove('hidden'); return; }
+          E.commentEmpty.classList.add('hidden');
+          comments.forEach(function (item) { E.commentList.appendChild(renderComment(item)); });
+        }).catch(function () {
+          E.commentEmpty.classList.remove('hidden');
+        });
+      }
+
+      // 发表评论
+      function doPostComment() {
+        var content = E.commentInput.value.trim();
+        if (!content) { showToast('请输入评论内容', 'error'); return; }
+        var btn = E.btnPost;
+        btn.disabled = true;
+        btn.textContent = '发送中...';
+        postComment(curId, content).then(function () {
+          showToast('评论发表成功！', 'success');
+          E.commentInput.value = '';
+          loadComments(curId);
+        }).catch(function () {
+          showToast('评论失败', 'error');
+        }).then(function () {
+          btn.disabled = false;
+          btn.textContent = '发送';
+        });
+      }
+
+      // 事件绑定
+      E.btnClose.onclick = closeDetail;
+      E.btnPost.onclick = doPostComment;
+      E.commentInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); E.btnPost.click(); }
+      });
+
+      // 初始化
+      loadResources();
+    })();
+    </script>
+
+</body>
+</html>

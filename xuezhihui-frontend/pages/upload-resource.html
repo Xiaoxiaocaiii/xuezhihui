@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传资源 - 学知汇</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .page-main .container > .card { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <header class="navbar">
+            <div class="container">
+                <a href="home.html" class="btn btn-sm btn-outline">← 返回首页</a>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: var(--font-size-lg); font-weight: 600; color: var(--color-text); white-space: nowrap;">
+                    📤 上传资源
+                </span>
+            </div>
+        </header>
+
+        <main class="page-main">
+            <div class="container">
+                <div class="page-header">
+                    <h2 class="page-title">📤 上传资源</h2>
+                    <p class="page-subtitle">分享你的学习资料，帮助更多同学。</p>
+                </div>
+
+                <section class="card" id="upload-form-card">
+                    <div class="card-body">
+                        <form id="upload-form">
+                            <div class="form-group">
+                                <label for="resource-title">资源标题 <span class="text-error">*</span></label>
+                                <input type="text" id="resource-title" placeholder="例如：高等数学期末复习笔记" maxlength="100">
+                            </div>
+                            <div class="form-group">
+                                <label>选择文件 <span class="text-error">*</span></label>
+                                <div class="upload-zone" id="upload-zone">
+                                    <div class="upload-icon">📁</div>
+                                    <p class="upload-text" id="upload-text">点击选择文件，或将文件拖拽到此处</p>
+                                    <p class="upload-hint">支持 PDF、Word、PPT、图片、压缩包等格式</p>
+                                    <input type="file" id="file-input" accept="*/*">
+                                </div>
+                                <div class="file-preview" id="file-preview">
+                                    <span>📎</span>
+                                    <span id="file-name" style="flex: 1;"></span>
+                                    <span class="text-muted" id="file-size"></span>
+                                    <button type="button" class="toast-close" id="btn-remove-file"
+                                            style="position: static; color: var(--color-error); opacity: 1;">✕</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-block btn-lg mt-lg" id="btn-submit">📤 上传资源</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="card hidden" id="success-card" style="margin-top: var(--spacing-lg); border-color: var(--color-success);">
+                    <div class="card-body text-center" style="padding: var(--spacing-2xl);">
+                        <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">🎉</div>
+                        <h3 style="color: var(--color-success); margin-bottom: var(--spacing-sm);">上传成功！</h3>
+                        <p class="text-secondary" style="margin-bottom: var(--spacing-lg);">你的资源已成功上传，审核通过后将在资源广场展示。</p>
+                        <div class="flex justify-center gap-md">
+                            <button type="button" class="btn btn-outline" id="btn-upload-another">📤 继续上传</button>
+                            <a href="resource-square.html" class="btn">📖 去资源广场看看</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+    (function () {
+      'use strict';
+      // 未登录自动跳回着陆页
+      if (!getUserId() || getUserId() === 0) {
+        window.location.href = '../index.html';
+      }
+      var file = null;
+      var U = {
+        zone:       $('upload-zone'),
+        fileInput:  $('file-input'),
+        preview:    $('file-preview'),
+        fileName:   $('file-name'),
+        fileSize:   $('file-size'),
+        uploadText: $('upload-text')
+      };
+
+      function selectFile(f) {
+        file = f;
+        U.preview.classList.add('visible');
+        U.fileName.textContent = f.name;
+        U.fileSize.textContent = f.size < 1048576 ? (f.size / 1024).toFixed(1) + ' KB' : (f.size / 1048576).toFixed(1) + ' MB';
+        U.uploadText.textContent = '点击重新选择文件';
+      }
+
+      function clearFile() {
+        file = null;
+        U.fileInput.value = '';
+        U.preview.classList.remove('visible');
+        U.fileName.textContent = '';
+        U.fileSize.textContent = '';
+        U.uploadText.textContent = '点击选择文件，或将文件拖拽到此处';
+      }
+
+      U.fileInput.addEventListener('change', function () {
+        if (U.fileInput.files && U.fileInput.files[0]) selectFile(U.fileInput.files[0]);
+      });
+
+      U.zone.addEventListener('dragover', function (e) { e.preventDefault(); U.zone.classList.add('dragover'); });
+      U.zone.addEventListener('dragleave', function (e) { e.preventDefault(); U.zone.classList.remove('dragover'); });
+      U.zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        U.zone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
+      });
+
+      $('btn-remove-file').addEventListener('click', function (e) { e.stopPropagation(); clearFile(); });
+
+      var form = $('upload-form');
+      var successCard = $('success-card');
+      var formCard = $('upload-form-card');
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var title = $('resource-title').value.trim();
+        if (!title) { showToast('请输入资源标题', 'error'); return; }
+        if (!file) { showToast('请选择文件', 'error'); return; }
+
+        var btn = $('btn-submit');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner spinner-sm"></span> 上传中...';
+
+        try {
+          await uploadResource(file, title);
+          showToast('上传成功！', 'success');
+          formCard.style.display = 'none';
+          successCard.classList.remove('hidden');
+          successCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+          showToast('上传失败', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '📤 上传资源';
+        }
+      });
+
+      $('btn-upload-another').addEventListener('click', function () {
+        $('resource-title').value = '';
+        clearFile();
+        successCard.classList.add('hidden');
+        formCard.style.display = '';
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    })();
+    </script>
+
+</body>
+</html>

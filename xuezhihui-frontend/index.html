@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学知汇 · 大学版 — 学习资源共享平台</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--spacing-xl) var(--spacing-md);
+            background-color: #667eea;
+            color: var(--color-white);
+        }
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: var(--spacing-md);
+        }
+        .hero-slogan {
+            font-size: var(--font-size-lg);
+            opacity: 0.85;
+            max-width: 480px;
+            margin: 0 auto var(--spacing-2xl) auto;
+            line-height: 1.8;
+        }
+        .hero-actions {
+            display: flex;
+            gap: var(--spacing-lg);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .hero-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 200px;
+            padding: var(--spacing-xl) var(--spacing-2xl);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: var(--radius-xl);
+            color: var(--color-white);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .hero-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            text-decoration: none;
+            color: var(--color-white);
+        }
+        .hero-card-primary {
+            background: var(--color-white);
+            color: var(--color-primary);
+            border-color: var(--color-white);
+        }
+        .hero-card-primary:hover {
+            background: #f0f0ff;
+            color: var(--color-primary-hover);
+        }
+    </style>
+</head>
+<body>
+    <main class="hero">
+        <h1 class="hero-title">📚 学知汇 · 大学版</h1>
+        <p class="hero-slogan">
+            专为大学生打造的学习资源共享平台<br>
+            上传笔记课件，下载优质资料，让知识流动起来
+        </p>
+        <div class="hero-actions">
+            <a href="pages/login.html" class="hero-card hero-card-primary">
+                <span style="font-size: 2.2rem;">🔑</span>
+                <span>登录 / 注册</span>
+                <span style="font-size: var(--font-size-xs); opacity: 0.7; font-weight: 400;">加入学知汇，共享知识</span>
+            </a>
+        </div>
+    </main>
+</body>
+</html>

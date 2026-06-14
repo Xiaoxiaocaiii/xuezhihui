@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 学知汇</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body class="auth-page">
+
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h1>📚 学知汇</h1>
+            <p>大学版 · 学习资源共享平台</p>
+        </div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-username">用户名</label>
+                <input type="text" id="login-username" placeholder="请输入用户名" autocomplete="username" maxlength="16">
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" placeholder="请输入密码" autocomplete="current-password" maxlength="16">
+            </div>
+            <button type="submit" class="btn btn-lg btn-block mt-lg" id="login-submit">登 录</button>
+        </form>
+
+        <p style="text-align:center; margin-top: var(--spacing-lg); font-size: var(--font-size-sm); color: var(--color-text-muted);">
+            没有账号？<a href="register.html">立即注册</a>
+        </p>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+    var form = document.getElementById('login-form');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var username = document.getElementById('login-username').value.trim();
+        var password = document.getElementById('login-password').value;
+
+        if (!username) { showToast('请输入用户名', 'error'); return; }
+        if (!password) { showToast('请输入密码', 'error'); return; }
+
+        var btn = document.getElementById('login-submit');
+        btn.disabled = true;
+        btn.textContent = '登录中...';
+
+        try {
+            await login(username, password);
+            showToast('登录成功！', 'success');
+            setTimeout(function () { window.location.href = 'home.html'; }, 800);
+        } catch (err) {
+            showToast(err.message || '登录失败', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '登 录';
+        }
+    });
+
+    bindEnterSubmit('login-form');
+    </script>
+
+</body>
+</html>

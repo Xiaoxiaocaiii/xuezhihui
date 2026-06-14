@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuezhihui.mapper.ResourceMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO resource (title, file_path, file_name, user_id, username)
+        VALUES (#{title}, #{filePath}, #{fileName}, #{userId}, #{username})
+    </insert>
+    <select id="selectAll" resultType="Resource">
+        SELECT id, title, file_path, file_name, user_id, username FROM resource ORDER BY id DESC
+    </select>
+    <select id="selectById" resultType="Resource">
+        SELECT id, title, file_path, file_name, user_id, username FROM resource WHERE id = #{id}
+    </select>
+    <delete id="deleteById">
+        DELETE FROM resource WHERE id = #{id}
+    </delete>
+</mapper>

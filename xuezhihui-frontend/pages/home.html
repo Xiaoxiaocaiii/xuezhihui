@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学知汇 - 首页</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <!-- 顶部导航栏 -->
+        <header class="navbar">
+            <div class="container">
+                <a href="home.html" class="navbar-brand">📚 学知汇</a>
+                <div class="navbar-user">
+                    <span class="user-greeting">
+                        👋 欢迎，<strong id="header-username">同学</strong>
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline" id="btn-logout">退出</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主体内容 -->
+        <main class="page-main">
+            <div class="container">
+                <section class="card mb-xl">
+                    <div class="card-body text-center" style="padding: var(--spacing-2xl) var(--spacing-lg);">
+                        <h1 style="font-size: var(--font-size-3xl); margin-bottom: var(--spacing-sm);">
+                            🎓 欢迎来到学知汇
+                        </h1>
+                        <p class="text-secondary" style="max-width: 560px; margin: 0 auto; line-height: 1.8;">
+                            学知汇是专为大学生打造的学习资源共享平台。
+                            在这里，你可以上传课件、笔记、复习资料，也可以下载同学们分享的优质资源，
+                            让知识在交流中不断积累与传承。
+                        </p>
+                    </div>
+                </section>
+
+                <section class="home-cards">
+                    <div class="card resource-card" id="card-resources" style="cursor: pointer;">
+                        <div class="card-body text-center" style="padding: var(--spacing-2xl) var(--spacing-lg);">
+                            <div style="font-size: 2.5rem; margin-bottom: var(--spacing-md);">📖</div>
+                            <h3 style="margin-bottom: var(--spacing-sm);">资源广场</h3>
+                            <p class="text-sm text-muted">浏览同学们上传的课件、笔记、复习资料，一键下载学习。</p>
+                        </div>
+                    </div>
+
+                    <div class="card resource-card" id="card-upload" style="cursor: pointer;">
+                        <div class="card-body text-center" style="padding: var(--spacing-2xl) var(--spacing-lg);">
+                            <div style="font-size: 2.5rem; margin-bottom: var(--spacing-md);">📤</div>
+                            <h3 style="margin-bottom: var(--spacing-sm);">上传资源</h3>
+                            <p class="text-sm text-muted">分享你的学习资料，帮助更多同学。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+    // 未登录自动跳回着陆页
+    if (!getUserId() || getUserId() === 0) {
+        window.location.href = '../index.html';
+    }
+
+    document.getElementById('header-username').textContent = getUsername();
+
+    document.getElementById('card-resources').addEventListener('click', function () {
+        window.location.href = 'resource-square.html';
+    });
+    document.getElementById('card-upload').addEventListener('click', function () {
+        window.location.href = 'upload-resource.html';
+    });
+    document.getElementById('btn-logout').addEventListener('click', function () {
+        localStorage.removeItem('userInfo');
+        window.location.href = '../index.html';
+    });
+    </script>
+
+</body>
+</html>
